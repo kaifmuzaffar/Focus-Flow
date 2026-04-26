@@ -5,7 +5,7 @@ import { Topbar } from "@/components/layout/Topbar";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { Clock, Calendar as CalendarIcon, Edit3, Trash2, X, Activity, Target as TargetIcon, Coffee } from "lucide-react";
+import { Clock, Calendar as CalendarIcon, Edit3, Trash2, X, Activity, Target as TargetIcon, Coffee, Play, Square, Pause } from "lucide-react";
 import { useStore, type Session } from "@/store/useStore";
 import { formatDate } from "@/lib/formatters";
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, ReferenceLine } from "recharts";

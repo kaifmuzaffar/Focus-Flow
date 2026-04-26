@@ -21,6 +21,7 @@ export interface Session {
   numberOfBreaks: number;
   productivityPercent: number;
   goalMinutes: number;
+  goalCompletionPercent: number;
   notes?: string;
   status: 'active' | 'paused' | 'completed';
   plannedEndTime?: string;
@@ -58,6 +59,7 @@ export interface Preferences {
   timeFormat: '12h' | '24h';
   dateFormat: 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD';
   weekStart: 'Monday' | 'Sunday';
+  numberFormat?: '1,000' | '1.000';
 }
 
 export interface Badge {
@@ -98,9 +100,7 @@ interface StudyStore {
   justCompletedSessionId: string | null;
   clearJustCompletedSession: () => void;
   currentSessionElapsed: number; // seconds
-  currentSessionStatus: 'studying' | 'paused' | 'idle' | null;
-
-  startSession: (courseId: string, startTime: string) => void;
+  currentSessionStatus: 'studying' | 'paused' | 'idle' | 'completed' | null;
   pauseSession: () => void;
   resumeSession: () => void;
   stopSession: () => void;
@@ -185,6 +185,14 @@ interface StudyStore {
     todayGoalMinutes: number;
     todayProgressPercent: number;
     termGoalHours: number;
+    
+    totalIdleMinutes: number;
+    totalProductivityPercent: number;
+    count80: number;
+    count60: number;
+    count40Wasted: number;
+    activeTargetIdleMinutes: number;
+    activeTargetStudyMinutes: number;
   };
 
   // Selectors
@@ -310,7 +318,7 @@ const recalculateStats = (sessions: Session[], courses: Course[], targets: Targe
     activeTargetProgressPercent = activeTargetGoalHours > 0 ? Math.min(100, Math.round((studiedMins / 60 / activeTargetGoalHours) * 100)) : 0;
   }
 
-  const weekdayHours = { Sun: 0, Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0 };
+  const weekdayHours: Record<string, number> = { Sun: 0, Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0 };
   const timeOfDayHours = { morning: 0, afternoon: 0, evening: 0, night: 0 };
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -649,7 +657,7 @@ export const useStore = create<StudyStore>()(
       }),
       setActiveTarget: (id) => set((state) => {
         // Only if no current active target (enforced by UI mostly, but we switch safely here)
-        const newTargets = state.targets.map(t => ({ ...t, status: t.id === id ? 'active' : (t.status === 'active' ? 'completed' : t.status) }));
+        const newTargets = state.targets.map(t => ({ ...t, status: (t.id === id ? 'active' : (t.status === 'active' ? 'completed' : t.status)) as Target['status'] }));
         return {
           targets: newTargets,
           activeTargetId: id,
@@ -813,7 +821,20 @@ export const useStore = create<StudyStore>()(
         badgesEarned: [],
         activeTargetGoalHours: 0,
         activeTargetDaysRemaining: 0,
-        activeTargetProgressPercent: 0
+        activeTargetProgressPercent: 0,
+        todayStudyMinutes: 0,
+        todayIdleMinutes: 0,
+        todaySessionCount: 0,
+        todayGoalMinutes: 0,
+        todayProgressPercent: 0,
+        termGoalHours: 0,
+        totalIdleMinutes: 0,
+        totalProductivityPercent: 0,
+        count80: 0,
+        count60: 0,
+        count40Wasted: 0,
+        activeTargetIdleMinutes: 0,
+        activeTargetStudyMinutes: 0
       },
 
       getSessionsByDate: (date) => get().sessions.filter(s => s.date === date),

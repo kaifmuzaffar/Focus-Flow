@@ -111,7 +111,7 @@ export function StudyBarChart({ period, onBarClick }: { period: 'days'|'weeks'|'
         <ResponsiveContainer width="100%" height="100%">
           <BarChart 
             data={chartData} 
-            onClick={(e) => {
+            onClick={(e: any) => {
               if (e && e.activePayload && e.activePayload.length > 0) {
                 onBarClick(e.activePayload[0].payload.name);
               }

@@ -39,7 +39,7 @@ export function Topbar({ title, subtitle }: TopbarProps) {
     if (stopwatch.isActive && stopwatch.startTime) {
       interval = setInterval(() => {
         const now = Date.now();
-        const elapsed = Math.floor((now - stopwatch.startTime + stopwatch.accumulatedMs) / 1000);
+        const elapsed = Math.floor((now - (stopwatch.startTime || now) + stopwatch.accumulatedMs) / 1000);
         setDisplaySeconds(elapsed);
       }, 100);
     } else {

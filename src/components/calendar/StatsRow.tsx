@@ -7,7 +7,7 @@ import { useStore } from "@/store/useStore";
 export function StatsRow() {
   const { stats, sessions } = useStore();
   const uniqueDays = new Set(sessions.map(s => s.date)).size;
-  const avgDaily = uniqueDays > 0 ? (stats.totalStudyHours / uniqueDays).toFixed(1) : 0;
+  const avgDaily = uniqueDays > 0 ? (stats.totalHours / uniqueDays).toFixed(1) : 0;
   
   const completedSessions = sessions.filter(s => s.status === 'completed');
   const avgProductivity = completedSessions.length > 0 ? 

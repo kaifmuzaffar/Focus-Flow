@@ -120,7 +120,7 @@ export function CourseDistributionCharts() {
                   tickFormatter={(val) => val.substring(0, 10) + (val.length > 10 ? '...' : '')}
                 />
                 <Tooltip cursor={{fill: '#262f40'}} content={<CustomTooltip />} />
-                <Bar dataKey="hours" radius={[0, 4, 4, 0]} barSize={24} label={{ position: 'right', fill: '#fff', fontSize: 12, formatter: (val: number) => `${val}h` }}>
+                <Bar dataKey="hours" radius={[0, 4, 4, 0]} barSize={24} label={{ position: 'right', fill: '#fff', fontSize: 12, formatter: (val: any) => `${val}h` }}>
                   {chartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.fill} />
                   ))}
