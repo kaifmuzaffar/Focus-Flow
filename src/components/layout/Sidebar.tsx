@@ -2,6 +2,7 @@
 
 import React from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { 
   LayoutDashboard, 
   Timer, 
@@ -13,6 +14,7 @@ import {
   FolderSync, 
   Settings,
   LogOut,
+  LogIn,
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
@@ -34,6 +36,7 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session, status } = useSession();
   const { hasTarget, courses, isSidebarCollapsed, toggleSidebar, setSidebarCollapsed } = useStore();
 
   return (
@@ -112,25 +115,41 @@ export function Sidebar() {
       <div className="p-4 mt-auto">
 
         <div className={cn("px-2 pb-2", isSidebarCollapsed && "flex flex-col items-center")}>
-          <button 
-            onClick={() => alert("Profile opened")}
-            title={isSidebarCollapsed ? "Profile" : undefined}
-            className={cn("flex items-center gap-3 text-xs font-medium text-zinc-400 hover:text-white w-full transition-colors mb-4", isSidebarCollapsed && "justify-center")}
-          >
-            <div className="w-6 h-6 shrink-0 rounded-full bg-orange-600 flex items-center justify-center text-white">
-              C
-            </div>
-            {!isSidebarCollapsed && <span className="whitespace-nowrap truncate overflow-hidden text-ellipsis">cuse0022@gmail.com</span>}
-          </button>
-          
-          <button 
-            onClick={() => alert("Logged out successfully")}
-            title={isSidebarCollapsed ? "Log out" : undefined}
-            className={cn("flex items-center gap-3 text-sm font-medium text-zinc-400 hover:text-white w-full transition-colors", isSidebarCollapsed && "justify-center")}
-          >
-            <LogOut className="w-4 h-4 shrink-0" />
-            {!isSidebarCollapsed && <span className="whitespace-nowrap">Log out</span>}
-          </button>
+          {status === 'authenticated' ? (
+            <>
+              <button 
+                title={isSidebarCollapsed ? "Profile" : undefined}
+                className={cn("flex items-center gap-3 text-xs font-medium text-zinc-400 hover:text-white w-full transition-colors mb-4", isSidebarCollapsed && "justify-center")}
+              >
+                {session.user?.image ? (
+                  <img src={session.user.image} alt="Profile" className="w-6 h-6 shrink-0 rounded-full" />
+                ) : (
+                  <div className="w-6 h-6 shrink-0 rounded-full bg-orange-600 flex items-center justify-center text-white">
+                    {session.user?.name?.[0]?.toUpperCase() || 'U'}
+                  </div>
+                )}
+                {!isSidebarCollapsed && <span className="whitespace-nowrap truncate overflow-hidden text-ellipsis">{session.user?.email}</span>}
+              </button>
+              
+              <button 
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                title={isSidebarCollapsed ? "Log out" : undefined}
+                className={cn("flex items-center gap-3 text-sm font-medium text-zinc-400 hover:text-white w-full transition-colors", isSidebarCollapsed && "justify-center")}
+              >
+                <LogOut className="w-4 h-4 shrink-0" />
+                {!isSidebarCollapsed && <span className="whitespace-nowrap">Log out</span>}
+              </button>
+            </>
+          ) : (
+            <button 
+              onClick={() => signIn("google")}
+              title={isSidebarCollapsed ? "Log in" : undefined}
+              className={cn("flex items-center gap-3 text-sm font-medium text-brand-primary hover:text-white w-full transition-colors", isSidebarCollapsed && "justify-center")}
+            >
+              <LogIn className="w-4 h-4 shrink-0" />
+              {!isSidebarCollapsed && <span className="whitespace-nowrap">Log in</span>}
+            </button>
+          )}
         </div>
       </div>
     </aside>

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AppShell } from "@/components/layout/AppShell";
-import { TargetGuard } from "@/components/layout/TargetGuard";
+import { AuthProvider } from "@/components/providers/AuthProvider";
+import { RouteWrapper } from "@/components/layout/RouteWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,11 +30,11 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex bg-brand-bg text-foreground">
-        <TargetGuard>
-          <AppShell>
+        <AuthProvider>
+          <RouteWrapper>
             {children}
-          </AppShell>
-        </TargetGuard>
+          </RouteWrapper>
+        </AuthProvider>
       </body>
     </html>
   );
