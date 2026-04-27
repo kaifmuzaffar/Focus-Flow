@@ -12,10 +12,24 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveCont
 import confetti from 'canvas-confetti';
 
 export default function Sessions() {
-  const { sessions, courses, deleteSession, startSession, preferences, currentSessionStatus, currentSessionElapsed, activeSessionId, stats, pauseSession, resumeSession, stopSession, justCompletedSessionId, clearJustCompletedSession } = useStore();
+  const { sessions, courses, deleteSession, startSession, preferences, currentSessionStatus, getCurrentSessionElapsed, activeSessionId, stats, pauseSession, resumeSession, stopSession, justCompletedSessionId, clearJustCompletedSession } = useStore();
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [currentSessionElapsed, setCurrentSessionElapsed] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (activeSessionId && (currentSessionStatus === 'studying' || currentSessionStatus === 'paused')) {
+      setCurrentSessionElapsed(getCurrentSessionElapsed());
+      interval = setInterval(() => {
+        setCurrentSessionElapsed(getCurrentSessionElapsed());
+      }, 1000);
+    } else {
+      setCurrentSessionElapsed(0);
+    }
+    return () => clearInterval(interval);
+  }, [activeSessionId, currentSessionStatus, getCurrentSessionElapsed]);
 
   useEffect(() => {
     if (justCompletedSessionId) {

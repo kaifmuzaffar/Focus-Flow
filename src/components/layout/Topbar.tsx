@@ -15,12 +15,13 @@ export function Topbar({ title, subtitle }: TopbarProps) {
   const router = useRouter();
   const { 
     stopwatch, setStopwatch, resetStopwatch, recordLap, preferences, targets, activeTargetId,
-    activeSessionId, currentSessionElapsed, currentSessionStatus, tickActiveSession, pauseSession, resumeSession, stopSession, sessions, courses
+    activeSessionId, getCurrentSessionElapsed, currentSessionStatus, tickActiveSession, pauseSession, resumeSession, stopSession, sessions, courses
   } = useStore();
   const activeTargetName = targets.find(t => t.id === activeTargetId)?.name || "No target set";
   const [showStopwatch, setShowStopwatch] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [displaySeconds, setDisplaySeconds] = useState(0);
+  const [currentSessionElapsed, setCurrentSessionElapsed] = useState(0);
   
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -52,12 +53,16 @@ export function Topbar({ title, subtitle }: TopbarProps) {
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (activeSessionId && (currentSessionStatus === 'studying' || currentSessionStatus === 'paused')) {
+      setCurrentSessionElapsed(getCurrentSessionElapsed());
       interval = setInterval(() => {
         tickActiveSession();
+        setCurrentSessionElapsed(getCurrentSessionElapsed());
       }, 1000);
+    } else {
+      setCurrentSessionElapsed(0);
     }
     return () => clearInterval(interval);
-  }, [activeSessionId, currentSessionStatus, tickActiveSession]);
+  }, [activeSessionId, currentSessionStatus, tickActiveSession, getCurrentSessionElapsed]);
 
   const handleStartPause = () => {
     if (stopwatch.isActive) {

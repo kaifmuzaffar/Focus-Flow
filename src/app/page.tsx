@@ -14,7 +14,21 @@ import { DashboardCourseBarChart } from "@/components/dashboard/DashboardCourseB
 import { CourseDistributionCharts } from "@/components/dashboard/CourseDistributionCharts";
 
 export default function Dashboard() {
-  const { stats, courses, sessions, targets, activeTargetId, currentSessionElapsed, currentSessionStatus, activeSessionId } = useStore();
+  const { stats, courses, sessions, targets, activeTargetId, getCurrentSessionElapsed, currentSessionStatus, activeSessionId } = useStore();
+  const [currentSessionElapsed, setCurrentSessionElapsed] = useState(0);
+
+  React.useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (activeSessionId && (currentSessionStatus === 'studying' || currentSessionStatus === 'paused')) {
+      setCurrentSessionElapsed(getCurrentSessionElapsed());
+      interval = setInterval(() => {
+        setCurrentSessionElapsed(getCurrentSessionElapsed());
+      }, 1000);
+    } else {
+      setCurrentSessionElapsed(0);
+    }
+    return () => clearInterval(interval);
+  }, [activeSessionId, currentSessionStatus, getCurrentSessionElapsed]);
 
   let liveIdleSeconds = 0;
   const activeSession = sessions.find(s => s.id === activeSessionId);

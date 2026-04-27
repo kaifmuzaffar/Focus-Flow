@@ -99,7 +99,9 @@ interface StudyStore {
   activeSessionId: string | null;
   justCompletedSessionId: string | null;
   clearJustCompletedSession: () => void;
-  currentSessionElapsed: number; // seconds
+  sessionStartTimestamp: number | null;
+  pausedElapsedMs: number;
+  getCurrentSessionElapsed: () => number;
   currentSessionStatus: 'studying' | 'paused' | 'idle' | 'completed' | null;
   pauseSession: () => void;
   resumeSession: () => void;
@@ -455,7 +457,15 @@ export const useStore = create<StudyStore>()(
       activeSessionId: null,
       justCompletedSessionId: null,
       clearJustCompletedSession: () => set({ justCompletedSessionId: null }),
-      currentSessionElapsed: 0,
+      sessionStartTimestamp: null,
+      pausedElapsedMs: 0,
+      getCurrentSessionElapsed: () => {
+        const state = get();
+        if (state.sessionStartTimestamp) {
+          return Math.floor((state.pausedElapsedMs + (Date.now() - state.sessionStartTimestamp)) / 1000);
+        }
+        return Math.floor(state.pausedElapsedMs / 1000);
+      },
       currentSessionStatus: null,
       
       startSession: (courseId, startTime, plannedEndTime) => set((state) => {
@@ -480,7 +490,8 @@ export const useStore = create<StudyStore>()(
         };
         return {
           activeSessionId: newSessionId,
-          currentSessionElapsed: 0,
+          sessionStartTimestamp: Date.now(),
+          pausedElapsedMs: 0,
           currentSessionStatus: 'studying',
           sessions: [...state.sessions, newSession]
         };
@@ -502,6 +513,8 @@ export const useStore = create<StudyStore>()(
         
         return {
           currentSessionStatus: 'paused',
+          pausedElapsedMs: state.pausedElapsedMs + (state.sessionStartTimestamp ? Date.now() - state.sessionStartTimestamp : 0),
+          sessionStartTimestamp: null,
           sessions
         };
       }),
@@ -525,6 +538,7 @@ export const useStore = create<StudyStore>()(
         
         return {
           currentSessionStatus: 'studying',
+          sessionStartTimestamp: Date.now(),
           sessions
         };
       }),
@@ -549,7 +563,7 @@ export const useStore = create<StudyStore>()(
             }
             
             const idleMinutes = breaks.reduce((acc, b) => acc + (b.durationMinutes || 0), 0);
-            const totalDurationMinutes = Math.floor(state.currentSessionElapsed / 60);
+            const totalDurationMinutes = Math.floor(state.getCurrentSessionElapsed() / 60);
             const studyMinutes = Math.max(0, totalDurationMinutes - idleMinutes);
             const productivityPercent = totalDurationMinutes > 0 ? Math.round((studyMinutes / totalDurationMinutes) * 100) : 0;
             
@@ -582,7 +596,8 @@ export const useStore = create<StudyStore>()(
         return {
           activeSessionId: null,
           justCompletedSessionId: state.activeSessionId,
-          currentSessionElapsed: 0,
+          sessionStartTimestamp: null,
+          pausedElapsedMs: 0,
           currentSessionStatus: null,
           sessions,
           stats: { ...state.stats, ...recalculateStats(sessions, state.courses, state.targets, state.activeTargetId) }
@@ -601,8 +616,6 @@ export const useStore = create<StudyStore>()(
              return;
            }
         }
-        
-        set({ currentSessionElapsed: state.currentSessionElapsed + 1 });
       },
       
       targets: [],
